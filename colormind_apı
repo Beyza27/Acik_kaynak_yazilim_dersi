@@ -1,0 +1,21 @@
+import requests
+import json
+
+def get_color_palette():
+    url = 'http://colormind.io/api/'
+    data = {'model': 'default'}
+    response = requests.post(url, json=data)
+
+    if response.status_code == 200:
+        result = response.json()
+        palette = result['result']
+        return palette
+    else:
+        print('Error fetching color palette:', response.status_code)
+        return None
+
+# Renk paletini al
+color_palette = get_color_palette()
+
+if color_palette:
+    print('Color Palette:', color_palette)
