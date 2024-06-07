@@ -1,0 +1,67 @@
+#Flask'ı yükleyin: pip install flask
+from flask import Flask, jsonify, request, abort
+
+app = Flask(__name__)
+
+# Örnek kitap veritabanı
+kitaplar = [
+    {'id': 1, 'baslik': '1984', 'yazar': 'George Orwell'},
+    {'id': 2, 'baslik': 'Cesur Yeni Dünya', 'yazar': 'Aldous Huxley'}
+]
+
+# Tüm kitapları listele
+@app.route('/kitaplar', methods=['GET'])
+def kitaplari_getir():
+    return jsonify({'kitaplar': kitaplar})
+
+# Belirli bir kitabı getir
+@app.route('/kitaplar/<int:kitap_id>', methods=['GET'])
+def kitabi_getir(kitap_id):
+    kitap = next((kitap for kitap in kitaplar if kitap['id'] == kitap_id), None)
+    if kitap is None:
+        abort(404)
+    return jsonify({'kitap': kitap})
+
+# Yeni kitap ekle
+@app.route('/kitaplar', methods=['POST'])
+def kitap_ekle():
+    if not request.json or not 'baslik' in request.json:
+        abort(400)
+    yeni_kitap = {
+        'id': kitaplar[-1]['id'] + 1 if kitaplar else 1,
+        'baslik': request.json['baslik'],
+        'yazar': request.json.get('yazar', "")
+    }
+    kitaplar.append(yeni_kitap)
+    return jsonify({'kitap': yeni_kitap}), 201
+
+# Kitap güncelle
+@app.route('/kitaplar/<int:kitap_id>', methods=['PUT'])
+def kitabi_guncelle(kitap_id):
+    kitap = next((kitap for kitap in kitaplar if kitap['id'] == kitap_id), None)
+    if kitap is None:
+        abort(404)
+    if not request.json:
+        abort(400)
+    kitap['baslik'] = request.json.get('baslik', kitap['baslik'])
+    kitap['yazar'] = request.json.get('yazar', kitap['yazar'])
+    return jsonify({'kitap': kitap})
+
+# Kitap sil
+@app.route('/kitaplar/<int:kitap_id>', methods=['DELETE'])
+def kitabi_sil(kitap_id):
+    global kitaplar
+    kitaplar = [kitap for kitap in kitaplar if kitap['id'] != kitap_id]
+    return jsonify({'sonuc': True})
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+#GET /books: Tüm kitapları döner.
+#GET /books/int:book_id: Belirli bir kitabı ID ile getirir.
+#POST /books: Yeni bir kitap ekler.
+#PUT /books/int:book_id: Belirli bir kitabı günceller.
+#DELETE /books/int:book_id: Belirli bir kitabı siler.
+#Postman veya cURL gibi araçlarla bu sunucuya REST sorguları atabilirsiniz. 
+    
